@@ -1,6 +1,7 @@
 {
   "name": "course-service",
   "version": "1.0.0",
+  "worker:outbox": "node src/outboxWorker.js",
   "description": "Course service for tuan4",
   "main": "src/server.js",
   "type": "module",

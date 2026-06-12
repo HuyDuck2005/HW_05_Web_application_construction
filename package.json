@@ -9,6 +9,8 @@
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "compose:logs": "docker compose logs -f",
+    "dev:notification": "npm run dev --workspace=notification-service",
+"dev:notification-consumer": "npm run consumer:course-events --workspace=notification-service",
 
     "migrate": "npm run migrate --workspaces --if-present",
     "seed": "npm run seed --workspaces --if-present",
