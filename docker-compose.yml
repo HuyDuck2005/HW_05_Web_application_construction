@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
-    container_name: db_w04
+    container_name: db_w05
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: "123456"
@@ -19,7 +19,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:4-management
-    container_name: w04_rabbitmq
+    container_name: w05_rabbitmq
     ports:
       - "5672:5672"   
       - "15672:15672" 

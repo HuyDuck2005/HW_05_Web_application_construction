@@ -1,0 +1,73 @@
+syntax = "proto3";
+package chat;
+
+service ChatService {
+  rpc GetOrCreateDirectConversation(GetOrCreateDirectConversationRequest) returns (ConversationResponse);
+  rpc ListMyConversations(ListMyConversationsRequest) returns (ListConversationsResponse);
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+  rpc SendMessage(SendMessageRequest) returns (MessageResponse);
+  rpc IsConversationMember(IsConversationMemberRequest) returns (IsConversationMemberResponse);
+}
+
+message GetOrCreateDirectConversationRequest {
+  string currentStudentId = 1;
+  string targetStudentId = 2;
+}
+
+message ListMyConversationsRequest {
+  string studentId = 1;
+}
+
+message ListMessagesRequest {
+  string currentStudentId = 1;
+  string conversationId = 2;
+  int32 limit = 3;
+  string before = 4;
+}
+
+message SendMessageRequest {
+  string currentStudentId = 1;
+  string conversationId = 2;
+  string content = 3;
+  string correlationId = 4;
+}
+
+message IsConversationMemberRequest {
+  string conversationId = 1;
+  string studentId = 2;
+}
+
+message IsConversationMemberResponse {
+  bool isMember = 1;
+}
+
+message Conversation {
+  string id = 1;
+  string type = 2;
+  string createdAt = 3;
+  string updatedAt = 4;
+}
+
+message ChatMessage {
+  string id = 1;
+  string conversationId = 2;
+  string senderId = 3;
+  string content = 4;
+  string createdAt = 5;
+}
+
+message ConversationResponse {
+  Conversation conversation = 1;
+}
+
+message ListConversationsResponse {
+  repeated Conversation conversations = 1;
+}
+
+message MessageResponse {
+  ChatMessage message = 1;
+}
+
+message ListMessagesResponse {
+  repeated ChatMessage messages = 1;
+}
