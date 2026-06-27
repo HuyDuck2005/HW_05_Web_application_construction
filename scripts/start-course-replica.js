@@ -1,7 +1,8 @@
+import "dotenv/config";
 const [
   healthPort = "3002",
   grpcPort = "50052",
-  instanceName = `course-service-${grpcPort}`
+  instanceName = `course-service-${grpcPort}`,
 ] = process.argv.slice(2);
 
 process.env.PORT = healthPort;

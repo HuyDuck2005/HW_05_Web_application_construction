@@ -12,8 +12,7 @@ const REDIS_COMMAND_TIMEOUT_MS = Number(
 );
 const COURSE_CACHE_PREFIX = process.env.COURSE_CACHE_PREFIX ?? "course";
 const TOP_COURSES_KEY = process.env.COURSE_TOP_COURSES_KEY ?? "courses:top";
-const TOP_COURSES_READY_KEY =
-  process.env.COURSE_TOP_COURSES_READY_KEY ?? "courses:top:ready";
+const TOP_COURSES_READY_KEY = process.env.COURSE_TOP_COURSES_READY_KEY ?? "courses:top:ready";
 
 let client;
 let connectPromise;
@@ -41,6 +40,7 @@ function getClient() {
       console.warn("[course-cache] redis error:", error.message);
     });
   }
+
   return client;
 }
 
@@ -94,10 +94,11 @@ async function withRedis(operation, fallback = null) {
 export async function getCachedCourse(id) {
   return withRedis(async (redisClient) => {
     const raw = await redisClient.sendCommand(["GET", courseKey(id)]);
+
     if (!raw) {
       return null;
     }
-    
+
     try {
       return JSON.parse(raw);
     } catch {
@@ -120,6 +121,7 @@ export async function setCachedCourse(course) {
       "EX",
       String(COURSE_CACHE_TTL_SECONDS)
     ]);
+
     return true;
   }, false);
 }
@@ -167,7 +169,7 @@ export async function getTopCourseIds(limit) {
   }, []);
 }
 
-export async function updateTopCoursesScore(course) {
+export async function updateTopCourseScore(course) {
   if (!course?.id) {
     return false;
   }
@@ -179,6 +181,7 @@ export async function updateTopCoursesScore(course) {
       String(Number(course.enrolled_count) || 0),
       course.id
     ]);
+
     return true;
   }, false);
 }

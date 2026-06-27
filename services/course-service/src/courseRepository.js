@@ -30,6 +30,7 @@ export function createCourseRepository(db) {
       if (!ids.length) {
         return [];
       }
+
       return db(TABLE_NAME)
         .select(
           "id",
@@ -40,21 +41,6 @@ export function createCourseRepository(db) {
           "capacity"
         )
         .whereIn("id", ids);
-    },
-
-    async findAll({ limit, offset }) {
-      return db(TABLE_NAME)
-        .select(
-          "id",
-          "title",
-          "description",
-          "status",
-          "enrolled_count",
-          "capacity"
-        )
-        .orderBy("id", "asc")
-        .limit(limit)
-        .offset(offset);
     },
 
     async findAllCoursesScores() {
@@ -74,6 +60,21 @@ export function createCourseRepository(db) {
         .orderBy("enrolled_count", "desc")
         .orderBy("id", "asc")
         .limit(limit);
+    },
+
+    async findAll({ limit, offset }) {
+      return db(TABLE_NAME)
+        .select(
+          "id",
+          "title",
+          "description",
+          "status",
+          "enrolled_count",
+          "capacity"
+        )
+        .orderBy("id", "asc")
+        .limit(limit)
+        .offset(offset);
     },
 
     async countAll() {
@@ -143,6 +144,6 @@ export function createCourseRepository(db) {
           emittedEventId: courseEventId
         };
       });
-    }
-  };
-}
+    } 
+  }; 
+} 

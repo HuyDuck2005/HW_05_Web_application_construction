@@ -1,4 +1,4 @@
-CREATE DATABASE course_db;
-CREATE DATABASE enrollment_db;
-CREATE DATABASE chat_db;
-CREATE DATABASE notification_db;
+CREATE DATABASE course_db_v2;
+CREATE DATABASE enrollment_db_v2;
+CREATE DATABASE chat_db_v2;
+CREATE DATABASE notification_db_v2;

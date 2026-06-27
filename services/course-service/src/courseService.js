@@ -28,10 +28,6 @@ function normalizePagination(limit, offset) {
   };
 }
 
-function normalizeTopCourseLimit(limit) {
-  return Math.min(Math.max(Number(limit) || 10, 1), 100);
-}
-
 function buildPageInfo({ total, limit, offset }) {
   return {
     total,
@@ -50,9 +46,11 @@ function createError(message, code) {
 
 function normalizeUuid(value, fieldName) {
   const uuid = String(value ?? '').trim();
+
   if (!uuid) {
     throw createError(`${fieldName} is required`, "INVALID_ARGUMENT");
   }
+
   return uuid;
 }
 
@@ -60,9 +58,9 @@ function normalizeEnrollmentConfirmedInput(input = {}) {
   const payload = input.payload ?? {};
   const eventId = input.eventId ?? input.event_id;
   const eventType = input.eventType ?? input.event_type;
-  const courseId = input.courseId ?? input.course_id ?? payload.courseId;
+  const correlationId = input.correlationId ?? input.correlation_id ?? null;
 
-  if (!eventId || !payload.enrollmentId || !payload.studentId) {
+  if (!eventId || !payload.enrollmentId || !payload.studentId || !payload.courseId) {
     throw createError("INVALID_EVENT_PAYLOAD", "INVALID_EVENT_PAYLOAD");
   }
 
@@ -72,20 +70,18 @@ function normalizeEnrollmentConfirmedInput(input = {}) {
 
   return {
     eventId,
-    eventType,
-    correlationId: input.correlationId ?? input.correlation_id ?? null,
+    eventType: eventType ?? "EnrollmentConfirmed",
+    correlationId,
     payload: {
-      enrollmentId: normalizeUuid(
-        input.enrollmentId ?? input.enrollment_id ?? payload.enrollmentId,
-        "enrollment_id"
-      ),
-      studentId: normalizeUuid(
-        input.studentId ?? input.student_id ?? payload.studentId,
-        "student_id"
-      ),
-      courseId: normalizeUuid(courseId, "course_id")
+      enrollmentId: normalizeUuid(payload.enrollmentId, "enrollment_id"),
+      studentId: normalizeUuid(payload.studentId, "student_id"),
+      courseId: normalizeUuid(payload.courseId, "course_id")
     }
   };
+}
+
+function normalizeTopCourseLimit(limit) {
+  return Math.min(Math.max(Number(limit) || 10, 1), 100);
 }
 
 async function loadTopCoursesFromCache(courseRepository, limit) {
@@ -116,9 +112,15 @@ async function rebuildTopCourseIndex(courseRepository) {
 export function createCourseService(courseRepository) {
   return {
     async getCourse(id) {
-      const course = await courseRepository.findById(
-        normalizeUuid(id, "course_id")
-      );
+      const normalizedId = normalizeUuid(id, "course_id");
+      let course = await courseCache.getCachedCourse(normalizedId);
+      
+      if (!course) {
+        course = await courseRepository.findById(normalizedId);
+        if (course) {
+          await courseCache.setCachedCourse(course);
+        }
+      }
 
       if (!course) {
         throw createError("Course not found", "NOT_FOUND");
@@ -146,7 +148,6 @@ export function createCourseService(courseRepository) {
       };
     },
 
-    // BỔ SUNG HÀM LIST TOP COURSES
     async listTopCourses({ limit } = {}) {
       const safeLimit = normalizeTopCourseLimit(limit);
 
@@ -154,11 +155,17 @@ export function createCourseService(courseRepository) {
         await rebuildTopCourseIndex(courseRepository);
       }
 
-      let cachedResult = await loadTopCoursesFromCache(courseRepository, safeLimit);
+      let cachedResult = await loadTopCoursesFromCache(
+        courseRepository,
+        safeLimit,
+      );
 
       if (cachedResult.hasStaleIds) {
         await rebuildTopCourseIndex(courseRepository);
-        cachedResult = await loadTopCoursesFromCache(courseRepository, safeLimit);
+        cachedResult = await loadTopCoursesFromCache(
+          courseRepository,
+          safeLimit,
+        );
       }
 
       if (cachedResult.courses.length > 0) {
@@ -169,7 +176,9 @@ export function createCourseService(courseRepository) {
       }
 
       return {
-        courses: attachInstanceNameToCourses(await courseRepository.findTopByEnrolledCount(safeLimit)),
+        courses: attachInstanceNameToCourses(
+          await courseRepository.findTopByEnrolledCount(safeLimit),
+        ),
         instance_name: INSTANCE_NAME,
       };
     },
@@ -189,7 +198,7 @@ export function createCourseService(courseRepository) {
 
       await Promise.all([
         courseCache.setCachedCourse(result.course),
-        courseCache.updateTopCoursesScore(result.course),
+        courseCache.updateTopCourseScore(result.course),
       ]);
 
       return {

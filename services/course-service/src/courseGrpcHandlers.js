@@ -22,6 +22,7 @@ function toGrpcError(error) {
     };
   }
 
+  console.error("courseGrpcHandlers error:", error);
   return {
     code: grpc.status.INTERNAL,
     message: "Internal course service error",
@@ -33,7 +34,10 @@ export function createCourseGrpcHandlers(courseService) {
     async getCourse(call, callback) {
       try {
         const course = await courseService.getCourse(call.request.id);
-        callback(null, { course, instance_name: course.instance_name });
+        callback(null, {
+          course,
+          instance_name: course.instance_name,
+        });
       } catch (error) {
         callback(toGrpcError(error));
       }
@@ -48,7 +52,6 @@ export function createCourseGrpcHandlers(courseService) {
       }
     },
 
-    // BỔ SUNG HÀM NÀY CHO TUẦN 6
     async listTopCourses(call, callback) {
       try {
         const result = await courseService.listTopCourses(call.request);
